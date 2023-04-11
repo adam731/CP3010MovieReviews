@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs';
 import {MongoClient } from 'mongodb';
@@ -6,7 +7,24 @@ import { fileURLToPath } from 'url';
 import multer from 'multer';
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import bodyParser from 'body-parser'
+
+const infoSchema = new mongoose.Schema({
+  name : String,
+  sport : String,
+  movie : String,
+  email : {type: String, required: true},
+});
+
+const Info = mongoose.model('Info', infoSchema);
+
 dotenv.config()
+
+async function main() {
+  await mongoose.connect(process.env.MONGO_CONNECT+"/customers");
+}
+
+main()
+
 
 const jsonParser = bodyParser.json()
 
@@ -37,6 +55,18 @@ console.log(movieData);
     {"title":"Titanic"},
     {"title":"Die Hard"}
 ];*/
+
+app.post('/api/addInfo', jsonParser, async (req, res) => {
+  const customerInfo = new Info(req.body);
+  try {
+    await customerInfo.save();
+  }
+  catch (err) {
+    res.status(206).send("Unable to save to database");
+  }
+  res.sendStatus(200);
+})
+
 
 app.get('/api/movies', async (req, res) => {
     
